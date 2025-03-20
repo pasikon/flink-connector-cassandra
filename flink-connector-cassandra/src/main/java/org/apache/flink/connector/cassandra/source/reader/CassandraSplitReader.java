@@ -40,6 +40,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -85,7 +86,9 @@ class CassandraSplitReader implements SplitReader<CassandraRow, CassandraSplit> 
 
         // Set wakeup to false to start consuming
         wakeup.compareAndSet(true, false);
-        for (CassandraSplit cassandraSplit : unprocessedSplits) {
+        Iterator<CassandraSplit> iterator = unprocessedSplits.iterator();
+        while (iterator.hasNext()) {
+            CassandraSplit cassandraSplit = iterator.next();
             // allow to interrupt the reading of splits especially the blocking session.execute()
             // call as requested in the API
             if (wakeup.get()) {
@@ -109,7 +112,7 @@ class CassandraSplitReader implements SplitReader<CassandraRow, CassandraSplit> 
                 finishedSplits.add(cassandraSplit.splitId());
                 // for reentrant calls: if fetch is restarted,
                 // do not reprocess the already processed splits
-                unprocessedSplits.remove(cassandraSplit);
+                iterator.remove();
             } catch (Exception ex) {
                 LOG.error("Error while reading split ", ex);
             }
