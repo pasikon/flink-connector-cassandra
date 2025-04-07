@@ -26,11 +26,11 @@ under the License.
 	<parent>
 		<groupId>org.apache.flink</groupId>
 		<artifactId>flink-connector-cassandra-parent</artifactId>
-		<version>4.0-opt</version>
+		<version>4.1-opt</version>
 	</parent>
 
 	<artifactId>flink-connector-cassandra_${scala.binary.version}</artifactId>
-	<version>4.0-opt</version>
+	<version>4.1-opt</version>
 	<name>Flink : Connectors : Cassandra</name>
 
 	<packaging>jar</packaging>

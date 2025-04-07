@@ -28,7 +28,7 @@ under the License.
 	<modelVersion>4.0.0</modelVersion>
 
 	<artifactId>flink-connector-cassandra-parent</artifactId>
-	<version>4.0-opt</version>
+	<version>4.1-opt</version>
 	<name>Flink : Connectors : Cassandra : Parent</name>
 	<packaging>pom</packaging>
 	<inceptionYear>2022</inceptionYear>
@@ -40,6 +40,17 @@ under the License.
 			scm:git:https://gitbox.apache.org/repos/asf/flink-connector-cassandra.git
 		</developerConnection>
 	</scm>
+
+	<distributionManagement>
+		<repository>
+			<id>abaro-release</id>
+			<url>https://maven.abaro.it/nexus/content/repositories/releases</url>
+		</repository>
+		<snapshotRepository>
+			<id>abaro-snap</id>
+			<url>https://maven.abaro.it/nexus/content/repositories/snapshots</url>
+		</snapshotRepository>
+	</distributionManagement>
 
 	<properties>
 		<flink.version>1.18.0</flink.version>
@@ -136,6 +147,17 @@ under the License.
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-enforcer-plugin</artifactId>
+			</plugin>
+
+			<plugin>
+				<artifactId>maven-source-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>attach-sources</id>
+						<phase>deploy</phase>
+						<goals><goal>jar-no-fork</goal></goals>
+					</execution>
+				</executions>
 			</plugin>
 		</plugins>
 	</build>

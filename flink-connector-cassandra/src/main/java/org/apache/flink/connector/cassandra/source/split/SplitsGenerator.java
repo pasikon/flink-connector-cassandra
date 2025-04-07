@@ -101,7 +101,7 @@ public final class SplitsGenerator {
             numSplits = parallelism;
         } else { // create estimateTableSize / maxSplitMemorySize splits. Otherwise, create
             // parallelism splits if that makes too few splits.
-            LOG.debug(
+            LOG.info(
                     "Estimated size for {}.{} table is {} bytes",
                     keyspace,
                     table,
@@ -132,7 +132,9 @@ public final class SplitsGenerator {
         }
         final float ringFraction = getRingFraction(tokenRanges);
         // ringFraction can be null if the size estimates are not available
-        return ringFraction != 0 ? Math.round(size / ringFraction) : 0L;
+        Float a = size / ringFraction;
+        double doubleValue = a.doubleValue();
+        return ringFraction != 0 ? Math.round(doubleValue) : 0L;
     }
 
     /**
