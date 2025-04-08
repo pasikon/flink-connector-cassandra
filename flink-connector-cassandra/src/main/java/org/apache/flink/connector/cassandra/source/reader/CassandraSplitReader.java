@@ -117,6 +117,11 @@ class CassandraSplitReader implements SplitReader<CassandraRow, CassandraSplit> 
                 LOG.error("Error while reading split ", ex);
             }
         }
+        LOG.info(
+                "Fetch completed: {} splits finished, {} splits remaining.",
+                finishedSplits.size(),
+                unprocessedSplits.size());
+
         return new RecordsBySplits<>(recordsBySplit, finishedSplits);
     }
 
