@@ -22,6 +22,7 @@ import org.apache.flink.api.connector.source.SourceReader;
 import org.apache.flink.api.connector.source.SourceReaderContext;
 import org.apache.flink.connector.base.source.reader.SingleThreadMultiplexSourceReaderBase;
 import org.apache.flink.connector.cassandra.source.split.CassandraSplit;
+import org.apache.flink.metrics.Counter;
 
 import com.datastax.driver.core.Cluster;
 import com.datastax.driver.core.Session;
@@ -45,6 +46,7 @@ class CassandraSourceReader<OUT>
     private final Cluster cluster;
     private final Session session;
 
+    private Counter splitsCompletedCounter;
     // created by the factory
     CassandraSourceReader(
             SourceReaderContext context,
@@ -70,6 +72,17 @@ class CassandraSourceReader<OUT>
 
     @Override
     protected void onSplitFinished(Map<String, CassandraSplit> finishedSplitIds) {
+        // context.metricGroup().counter("cassandra_splits_completed").inc(finishedSplitIds.size());
+
+        if (splitsCompletedCounter == null) {
+            this.splitsCompletedCounter =
+                    context.metricGroup().counter("cassandra_splits_completed");
+        }
+
+        LOG.info(
+                "Subtask onSplitFinished called. Splits finished in this call: {}",
+                finishedSplitIds.size());
+        splitsCompletedCounter.inc(finishedSplitIds.size());
         context.sendSplitRequest();
     }
 

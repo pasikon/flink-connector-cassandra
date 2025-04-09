@@ -41,6 +41,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -76,6 +77,11 @@ class CassandraSplitReader implements SplitReader<CassandraRow, CassandraSplit> 
 
     @Override
     public RecordsWithSplitIds<CassandraRow> fetch() {
+        LOG.info(
+                "Calling fetch(). Current unprocessedSplits: {}",
+                unprocessedSplits.stream()
+                        .map(CassandraSplit::splitId)
+                        .collect(Collectors.toList()));
         Map<String, Collection<CassandraRow>> recordsBySplit = new HashMap<>();
         Set<String> finishedSplits = new HashSet<>();
 
@@ -107,6 +113,7 @@ class CassandraSplitReader implements SplitReader<CassandraRow, CassandraSplit> 
                                         .setToken(1, endToken));
                 // add all the records of the split to the output (in memory).
                 // It is safe because each split has a configurable maximum memory size
+                LOG.info("==== recordsBySplit: "+recordsBySplit.size());
                 addRecordsToOutput(resultSet, cassandraSplit, recordsBySplit);
                 // add the already read (or even empty) split to finished splits
                 finishedSplits.add(cassandraSplit.splitId());
@@ -117,10 +124,6 @@ class CassandraSplitReader implements SplitReader<CassandraRow, CassandraSplit> 
                 LOG.error("Error while reading split ", ex);
             }
         }
-        LOG.info(
-                "Fetch completed: {} splits finished, {} splits remaining.",
-                finishedSplits.size(),
-                unprocessedSplits.size());
 
         return new RecordsBySplits<>(recordsBySplit, finishedSplits);
     }
@@ -137,8 +140,9 @@ class CassandraSplitReader implements SplitReader<CassandraRow, CassandraSplit> 
     }
 
     @Override
-    public void handleSplitsChanges(SplitsChange<CassandraSplit> splitsChanges) {
-        unprocessedSplits.addAll(splitsChanges.splits());
+    public void handleSplitsChanges(SplitsChange<CassandraSplit> splitsChange) {
+        List<CassandraSplit> newSplits = splitsChange.splits();
+        unprocessedSplits.addAll(newSplits);
     }
 
     /**
