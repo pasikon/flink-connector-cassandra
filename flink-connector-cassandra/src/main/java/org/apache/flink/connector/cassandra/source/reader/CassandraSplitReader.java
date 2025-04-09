@@ -113,8 +113,9 @@ class CassandraSplitReader implements SplitReader<CassandraRow, CassandraSplit> 
                                         .setToken(1, endToken));
                 // add all the records of the split to the output (in memory).
                 // It is safe because each split has a configurable maximum memory size
-                LOG.info("==== recordsBySplit: "+recordsBySplit.size());
                 addRecordsToOutput(resultSet, cassandraSplit, recordsBySplit);
+                LOG.info("==== recordsBySplit: " + recordsBySplit.size());
+
                 // add the already read (or even empty) split to finished splits
                 finishedSplits.add(cassandraSplit.splitId());
                 // for reentrant calls: if fetch is restarted,
