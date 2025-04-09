@@ -41,6 +41,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -76,6 +77,11 @@ class CassandraSplitReader implements SplitReader<CassandraRow, CassandraSplit> 
 
     @Override
     public RecordsWithSplitIds<CassandraRow> fetch() {
+        LOG.info(
+                "Calling fetch(). Current unprocessedSplits: {}",
+                unprocessedSplits.stream()
+                        .map(CassandraSplit::splitId)
+                        .collect(Collectors.toList()));
         Map<String, Collection<CassandraRow>> recordsBySplit = new HashMap<>();
         Set<String> finishedSplits = new HashSet<>();
 
@@ -108,6 +114,8 @@ class CassandraSplitReader implements SplitReader<CassandraRow, CassandraSplit> 
                 // add all the records of the split to the output (in memory).
                 // It is safe because each split has a configurable maximum memory size
                 addRecordsToOutput(resultSet, cassandraSplit, recordsBySplit);
+                LOG.info("==== recordsBySplit: " + recordsBySplit.size());
+
                 // add the already read (or even empty) split to finished splits
                 finishedSplits.add(cassandraSplit.splitId());
                 // for reentrant calls: if fetch is restarted,
@@ -117,6 +125,7 @@ class CassandraSplitReader implements SplitReader<CassandraRow, CassandraSplit> 
                 LOG.error("Error while reading split ", ex);
             }
         }
+
         return new RecordsBySplits<>(recordsBySplit, finishedSplits);
     }
 
@@ -132,8 +141,9 @@ class CassandraSplitReader implements SplitReader<CassandraRow, CassandraSplit> 
     }
 
     @Override
-    public void handleSplitsChanges(SplitsChange<CassandraSplit> splitsChanges) {
-        unprocessedSplits.addAll(splitsChanges.splits());
+    public void handleSplitsChanges(SplitsChange<CassandraSplit> splitsChange) {
+        List<CassandraSplit> newSplits = splitsChange.splits();
+        unprocessedSplits.addAll(newSplits);
     }
 
     /**
